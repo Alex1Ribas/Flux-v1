@@ -1,43 +1,53 @@
-# Flux
+# Flux v1: modelo de caixas
 
-Monorepo do aplicativo financeiro **Flux**.
+> **Versão arquivada.** Esta é a primeira versão do [Flux](https://github.com/Alex1Ribas/Flux), mantida só como registro da evolução do projeto. A versão atual passou por um redesenho de produto e está no repositório principal.
 
-```
-Flux/
-├── Frontend/   # Expo / React Native (flux-app)
-├── Backend/    # API Express (flux-api)
-├── package.json
-├── vercel.json
-└── .gitignore
-```
+## A ideia
 
-## Desenvolvimento
+A v1 organizava o dinheiro em **caixas** (envelopes). A pergunta central do app era:
 
-```bash
-# na raiz Flux/
-yarn install          # workspaces
+> "De qual parte do meu patrimônio esse dinheiro saiu?"
 
-# API
-yarn dev:api
+Existiam três tipos de caixa:
 
-# App (Expo)
-yarn dev:app
+- **Origem**: onde a receita entra (ex.: Salário).
+- **Objetivo**: meta de acúmulo com aporte mensal planejado.
+- **Orçamento**: envelope com limite mensal de gastos (limites diário e semanal derivados).
 
-# Web (Expo)
-yarn dev:web
-```
+O fluxo seguia **origem → distribuição → alocação → pagamento**:
 
-Variáveis: `Frontend/.env` e `Backend/.env` (veja os `.env.example` de cada pacote).
+- Toda entrada creditava uma caixa de origem e depois era **distribuída** para as caixas de alocação.
+- Toda saída debitava uma caixa, respeitando `disponível = saldo − comprometido`.
+- Compras no cartão não debitavam na hora: geravam **comprometimento** até a fatura.
+- Contas a pagar comprometiam o saldo até serem **liquidadas**.
 
-## Deploy (Vercel)
+Além disso: lançamentos recorrentes e parcelados, empréstimos, orçamento por competência, acompanhamento mensal com indicador de risco, simulação de impacto de uma decisão e categorias personalizadas.
 
-O `vercel.json` na raiz aponta:
+## Por que foi substituída
 
-- **API serverless:** `Backend/src/index.ts` em `/api/*`
-- **Web estática:** build Expo em `Frontend/dist`
+Usando o app no dia a dia, o modelo se mostrou trabalhoso demais: cada movimentação precisava ser registrada, distribuída e liquidada. O custo de manter os dados em dia era maior que o valor da resposta.
 
-No painel da Vercel, use o repositório raiz `Flux` (não subpastas isoladas).
+A [v2](https://github.com/Alex1Ribas/Flux) troca o registro do passado pelo planejamento do futuro: você descreve rendas e contas, e o app projeta os próximos meses e responde **"quanto posso gastar agora sem comprometer o resto?"**.
 
-## Marca
+| | v1 (este repo) | v2 |
+|---|---|---|
+| Modelo | Caixas + lançamentos | Rendas + contas + reserva |
+| Operações da API | 35 | 11 |
+| Código (front + back) | ~19,8 mil linhas | ~6,7 mil linhas |
+| Telas | 10 | 4 |
 
-Antigo nome **finCaixas** / **finance-api** → **Flux** (`flux-app` + `flux-api`).
+## Stack
+
+- **Frontend**: Expo / React Native com Expo Router, TanStack Query, Zustand, NativeWind e Moti.
+- **Backend**: Express 5 + MongoDB em Clean Architecture, com contrato OpenAPI validado em runtime.
+- **Deploy**: Vercel (API + web) e EAS com OTA updates.
+
+## Histórico
+
+O app começou como **finCaixas**, com frontend e API em repositórios separados, e foi unificado neste monorepo em julho de 2026. O histórico de commits deste repo vai de julho a agosto de 2026, até o início do redesenho.
+
+> Este código compartilha a identidade de deploy (EAS `projectId`, canal OTA, API) com a versão atual. Antes de gerar qualquer build a partir dele, troque `name`, `slug`, `bundleIdentifier`/`package` e `projectId` em `Frontend/app.json`.
+
+## Licença
+
+[MIT](LICENSE) © Alex Ribas
